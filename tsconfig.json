@@ -1,3 +1,9 @@
 {
-  "extends": "@react-native/typescript-config/tsconfig.json"
+  "extends": "@react-native/typescript-config/tsconfig.json",
+  "compilerOptions": {
+    "esModuleInterop": true,
+    "strict": true,
+    "typeRoots": ["./src/constants/types"],
+    "types": ["jest", "react-native"]
+  }
 }
