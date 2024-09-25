@@ -6,9 +6,11 @@ import Calendar from '../components/CustomCalendar/Calendar';
 import moment from 'moment';
 import {useCallback, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
-import {addTodo} from '../redux/slice/todoSlice';
+import {addTodo, removeTodo} from '../redux/slice/todoSlice';
 import {Controller, useForm} from 'react-hook-form';
 import {useTheme} from '../hooks';
+import {Platform} from 'react-native';
+import {ITask} from '../constants/types';
 
 const EditTaskScreen = ({
   route,
@@ -97,7 +99,6 @@ const EditTaskScreen = ({
     console.log(data);
     const id = await generateUniqueId();
     console.log('id', id);
-
     dispatch(
       addTodo({
         id: id,
@@ -108,6 +109,16 @@ const EditTaskScreen = ({
         endTime: data.endTime,
         priority: data.priority,
         completed: false,
+      }),
+    );
+    navigation.goBack();
+  };
+
+  const onDeleteTask = async (task: ITask) => {
+    console.log(task);
+    dispatch(
+      removeTodo({
+        ...task,
       }),
     );
     navigation.goBack();
@@ -177,7 +188,7 @@ const EditTaskScreen = ({
             </Button>
             <Block>
               <Text center h1>
-                Create new task
+                Edit task
               </Text>
             </Block>
           </Block>
@@ -196,7 +207,11 @@ const EditTaskScreen = ({
             </Button>
           </Block>
           <Calendar onSelectDate={onSelectDate} selected={selectedDate} />
-          <Block flex={0} marginTop={20}>
+          <Block
+            keyboard
+            marginTop={20}
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            keyboardVerticalOffset={Platform.OS === 'android' ? 50 : 0}>
             <Text white h3 marginTop={20}>
               Schedule
             </Text>
@@ -218,7 +233,11 @@ const EditTaskScreen = ({
                 )}
                 name="title"
               />
-              {errors.title && <Text>This is required.</Text>}
+              {errors.title && (
+                <Text size={14} marginTop={5} color={colors.danger}>
+                  This is required.
+                </Text>
+              )}
               <Controller
                 control={control}
                 rules={{
@@ -240,7 +259,11 @@ const EditTaskScreen = ({
                 )}
                 name="description"
               />
-              {errors.description && <Text>This is required.</Text>}
+              {errors.description && (
+                <Text size={14} marginTop={5} color={colors.danger}>
+                  This is required.
+                </Text>
+              )}
             </Block>
             <Text white h4 marginTop={20} opacity={0.8}>
               Schedule
@@ -305,7 +328,7 @@ const EditTaskScreen = ({
             <Text white h4 marginTop={20} opacity={0.8}>
               Priority
             </Text>
-            <Block row flex={0} marginTop={10}>
+            <Block row flex={0} marginTop={10} marginHorizontal={5}>
               {renderPriorityBtn(gradients.gold_white, 'High', {
                 marginRight: 5,
               })}
@@ -319,23 +342,41 @@ const EditTaskScreen = ({
           </Block>
         </Block>
         <Block
+          flex={1}
           position="absolute"
-          bottom={0}
+          bottom={20}
           left={0}
           right={0}
-          flex={0}
           marginTop={20}
           paddingHorizontal={sizes.padding}>
-          <Button gradient={gradients.primary} onPress={handleSubmit(onSubmit)}>
-            <Text
-              lineHeight={sizes.h3}
-              white
-              center
-              font={fonts.medium}
-              size={sizes.h6}>
-              Edit Task
-            </Text>
-          </Button>
+          <Block row width={'100%'} justify="space-between">
+            <Button
+              width={'45%'}
+              color={colors.danger}
+              onPress={() => onDeleteTask(task)}>
+              <Text
+                lineHeight={sizes.h3}
+                white
+                center
+                font={fonts.medium}
+                size={sizes.h6}>
+                Delete Task
+              </Text>
+            </Button>
+            <Button
+              width={'45%'}
+              gradient={gradients.primary}
+              onPress={() => {}}>
+              <Text
+                lineHeight={sizes.h3}
+                white
+                center
+                font={fonts.medium}
+                size={sizes.h6}>
+                Edit Task
+              </Text>
+            </Button>
+          </Block>
         </Block>
         <Controller
           control={control}

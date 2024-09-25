@@ -7,6 +7,7 @@ import todoReducer from './slice/todoSlice';
 const persistConfig = {
   key: 'root',
   storage: AsyncStorage, // Use AsyncStorage to persist state
+  timeout: 10000000,
 };
 
 const persistedTodoReducer = persistReducer(persistConfig, todoReducer);

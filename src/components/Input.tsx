@@ -160,7 +160,7 @@ const Input = ({
           placeholderTextColor={inputColor}
           onFocus={event => handleFocus(event, true)}
           onBlur={event => handleFocus(event, false)}
-          multiline={true}
+          multiline={multiline}
           numberOfLines={numberOfLines}
         />
         {danger && assets.warning && (

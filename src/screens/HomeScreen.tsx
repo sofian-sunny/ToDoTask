@@ -1,25 +1,36 @@
-import * as React from 'react';
+import React, {useEffect} from 'react';
 import * as Progress from 'react-native-progress';
-import {Block, Button, Checkbox, Image, Text} from '../components';
+import {Block, Button, Checkbox, Image, Modal, Text} from '../components';
 import {FONTS, width} from '../constants/theme';
 import {useTheme} from '../hooks';
+import {setTodoStatus} from '../redux/slice/todoSlice';
 import {MainRoutes} from '../navigation/StackNavigation';
-import {useSelector} from 'react-redux';
+import {useSelector, useDispatch} from 'react-redux';
 import {NavigationProp} from '@react-navigation/native';
 import {Pressable} from 'react-native';
 import moment from 'moment';
 import {ScrollView} from 'react-native-gesture-handler';
+import {ITask} from '../constants/types';
 
 interface HomeScreenProps {
   navigation: NavigationProp<any>;
 }
 
 const HomeScreen = ({navigation}: HomeScreenProps) => {
-  const {colors, gradients, icons, sizes} = useTheme();
-  console.log('sizes.padding', sizes.padding);
+  const {colors, gradients, icons, sizes, fonts} = useTheme();
   const todos = useSelector((state: any) => state);
-  console.log('todos', todos);
+  const [modal, setModal] = React.useState<boolean>(false);
+  const [taskDetails, setTaskDetails] = React.useState<any>({
+    tasks: 0,
+    completed: 0,
+  });
+  const [currentSelectedTask, setCurrentSelectedTask] = React.useState<ITask>();
+  const dispatch = useDispatch();
 
+  React.useEffect(() => {
+    console.log('todos =============', todos);
+    setTaskDetails(tasksDetails());
+  }, [todos?.todos?.todos]);
   const renderFloatingBtn = (navigation: NavigationProp<any>) => {
     return (
       <Button
@@ -43,14 +54,46 @@ const HomeScreen = ({navigation}: HomeScreenProps) => {
       </Button>
     );
   };
+
+  const tasksDetails = () => {
+    if (todos?.todos?.todos?.length === 0) {
+      return {tasks: 0, completed: 0};
+    } else {
+      let completed = 0;
+      todos?.todos?.todos?.forEach((task: ITask) => {
+        if (task.completed) {
+          completed++;
+        }
+      });
+      return {tasks: todos?.todos?.todos?.length, completed};
+    }
+  };
+
   console.log('todos =============', todos?.todos?.todos);
+
+  const onCheckBoxPress = (task: ITask) => {
+    setCurrentSelectedTask(task);
+    setModal(true);
+  };
+
+  const onCompleteTask = (value: boolean) => {
+    dispatch(
+      setTodoStatus({
+        ...currentSelectedTask,
+        completed: value,
+      }),
+    );
+    setModal(false);
+  };
+
+  // console.log('todos =============', todos?.todos?.todos);
   const renderTask = () => {
     if (!todos?.todos?.todos || todos?.todos?.todos?.length === 0) {
       return null;
     }
     return (
       Array.isArray(todos?.todos?.todos) &&
-      todos?.todos?.todos?.map((todoItem: any, index: number) => {
+      todos?.todos?.todos?.map((todoItem: ITask, index: number) => {
         let gradient = gradients.gold_white;
         if (todoItem.priority === 'Low') {
           gradient = gradients.primary_white;
@@ -59,6 +102,7 @@ const HomeScreen = ({navigation}: HomeScreenProps) => {
         }
         return (
           <Pressable
+            key={`${todoItem.id}`}
             onPress={() =>
               navigation.navigate(MainRoutes.EditTaskScreen, {task: todoItem})
             }>
@@ -95,7 +139,11 @@ const HomeScreen = ({navigation}: HomeScreenProps) => {
                   </Text>
                 </Block>
               </Block>
-              <Checkbox margin={sizes.cardPadding} />
+              <Checkbox
+                onPress={() => onCheckBoxPress(todoItem)}
+                margin={sizes.cardPadding}
+                checked={todoItem.completed}
+              />
             </Block>
           </Pressable>
         );
@@ -103,14 +151,17 @@ const HomeScreen = ({navigation}: HomeScreenProps) => {
     );
   };
 
+  console.log('taskDetails?.completed', taskDetails?.completed);
+  console.log('taskDetails?.tasks', taskDetails?.tasks);
+
   return (
     <Block safe color={colors.background}>
       {renderFloatingBtn(navigation)}
       <Block margin={sizes.padding}>
         <Block row align="center" flex={0} justify="space-between">
           <Block>
-            <Text white h1>
-              {`You have got 5 tasks today to complete `}
+            <Text white h1 marginRight={10}>
+              {`You have got ${taskDetails.tasks} tasks today to complete `}
               <Image height={24} width={24} source={icons.edit} />
             </Text>
           </Block>
@@ -150,7 +201,7 @@ const HomeScreen = ({navigation}: HomeScreenProps) => {
             Progress
           </Text>
           <Text opacity={0.8} marginTop={10} white h6>
-            2/3 Task Completed
+            {`${taskDetails?.completed} / ${taskDetails.tasks}`} Task Completed
           </Text>
           <Block
             marginTop={10}
@@ -159,10 +210,15 @@ const HomeScreen = ({navigation}: HomeScreenProps) => {
             flex={0}
             justify="space-between">
             <Text opacity={0.8} white p font={FONTS.thin}>
-              You are almost done go ahead
+              {taskDetails?.tasks > 0
+                ? 'You are almost done go ahead'
+                : 'You have no task to complete'}
             </Text>
             <Text white h5>
-              66%
+              {taskDetails?.completed > 0
+                ? (taskDetails?.completed / taskDetails.tasks) * 100
+                : 0}
+              %
             </Text>
           </Block>
           <Progress.Bar
@@ -171,7 +227,11 @@ const HomeScreen = ({navigation}: HomeScreenProps) => {
             style={{marginTop: 10, borderRadius: 10}}
             height={18}
             borderWidth={0}
-            progress={0.3}
+            progress={
+              taskDetails?.completed
+                ? taskDetails?.completed / taskDetails?.tasks
+                : 0
+            }
             width={width - 40 - 32}
           />
         </Block>
@@ -182,7 +242,7 @@ const HomeScreen = ({navigation}: HomeScreenProps) => {
           flex={0}
           justify="space-between">
           <Text white h3>
-            Progress
+          Tasks
           </Text>
           <Text white h6 color={colors.primary}>
             See All
@@ -192,6 +252,49 @@ const HomeScreen = ({navigation}: HomeScreenProps) => {
           <ScrollView>{renderTask()}</ScrollView>
         )}
       </Block>
+      <Modal visible={modal} onRequestClose={() => setModal(false)}>
+        <Block flex={0}>
+          <Text black h3>
+            Are you sure you want to change status of this task?
+          </Text>
+          <Block row justify="space-between" flex={0} marginTop={20}>
+            <Button
+              onPress={() => onCompleteTask(false)}
+              marginRight={10}
+              color={colors.background}
+              flex={1}>
+              <Block flex={0} row center align="center">
+                <Text
+                  font={fonts.normal}
+                  size={sizes.h5}
+                  lineHeight={sizes.h3}
+                  color={colors.white}
+                  opacity={0.8}
+                  marginLeft={10}>
+                  Cancel
+                </Text>
+              </Block>
+            </Button>
+            <Button
+              onPress={() => onCompleteTask(true)}
+              marginLeft={10}
+              gradient={gradients.primary}
+              flex={1}>
+              <Block row center align="center">
+                <Text
+                  font={fonts.normal}
+                  size={sizes.h5}
+                  lineHeight={sizes.h3}
+                  color={colors.white}
+                  opacity={0.8}
+                  marginLeft={10}>
+                  Confirm
+                </Text>
+              </Block>
+            </Button>
+          </Block>
+        </Block>
+      </Modal>
     </Block>
   );
 };

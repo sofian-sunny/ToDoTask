@@ -13,8 +13,22 @@ const todoSlice = createSlice({
     addTodo: (state, action: PayloadAction<ITask>) => {
       return {...state, todos: [...state.todos, action.payload]};
     },
+    removeTodo(state, action: PayloadAction<ITask>) {
+      const index = state.todos.findIndex(
+        todo => todo.id === action.payload.id,
+      );
+      if (index !== -1) {
+        state.todos.splice(index, 1);
+      }
+    },
+    setTodoStatus(state, action: PayloadAction<ITask>) {
+      const index = state.todos.findIndex(
+        todo => todo.id === action.payload.id,
+      );
+      state.todos[index].completed = action.payload.completed;
+    },
   },
 });
 
-export const {addTodo} = todoSlice.actions;
+export const {addTodo, setTodoStatus, removeTodo} = todoSlice.actions;
 export default todoSlice.reducer;

@@ -13,7 +13,7 @@ const Checkbox = ({
   ...props
 }: ICheckboxProps) => {
   const {colors, icons, sizes} = useTheme();
-  const [checked, setChecked] = useState(false);
+  const [checked, setChecked] = useState(props?.checked || false);
 
   const handlePress = useCallback(() => {
     onPress?.(!checked);

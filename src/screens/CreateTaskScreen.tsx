@@ -9,6 +9,7 @@ import {useCallback, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import {addTodo} from '../redux/slice/todoSlice';
 import {Controller, useForm} from 'react-hook-form';
+import {Platform} from 'react-native';
 
 const CreateTaskScreen = ({navigation}: {navigation: NavigationProp<any>}) => {
   const {colors, sizes, icons, fonts, gradients} = useTheme();
@@ -186,7 +187,11 @@ const CreateTaskScreen = ({navigation}: {navigation: NavigationProp<any>}) => {
             </Button>
           </Block>
           <Calendar onSelectDate={onSelectDate} selected={selectedDate} />
-          <Block flex={0} marginTop={20}>
+          <Block
+            keyboard
+            marginTop={20}
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            keyboardVerticalOffset={Platform.OS === 'android' ? 50 : 0}>
             <Text white h3 marginTop={20}>
               Schedule
             </Text>
@@ -208,7 +213,11 @@ const CreateTaskScreen = ({navigation}: {navigation: NavigationProp<any>}) => {
                 )}
                 name="title"
               />
-              {errors.title && <Text>This is required.</Text>}
+              {errors.title && (
+                <Text size={14} marginTop={5} color={colors.danger}>
+                  This is required.
+                </Text>
+              )}
               <Controller
                 control={control}
                 rules={{
@@ -230,7 +239,11 @@ const CreateTaskScreen = ({navigation}: {navigation: NavigationProp<any>}) => {
                 )}
                 name="description"
               />
-              {errors.description && <Text>This is required.</Text>}
+              {errors.description && (
+                <Text size={14} marginTop={5} color={colors.danger}>
+                  This is required.
+                </Text>
+              )}
             </Block>
             <Text white h4 marginTop={20} opacity={0.8}>
               Schedule
@@ -277,7 +290,7 @@ const CreateTaskScreen = ({navigation}: {navigation: NavigationProp<any>}) => {
             <Text white h4 marginTop={20} opacity={0.8}>
               Priority
             </Text>
-            <Block row flex={0} marginTop={10}>
+            <Block row marginHorizontal={5} flex={0} marginTop={10}>
               {renderPriorityBtn(gradients.gold_white, 'High', {
                 marginRight: 5,
               })}
@@ -292,7 +305,7 @@ const CreateTaskScreen = ({navigation}: {navigation: NavigationProp<any>}) => {
         </Block>
         <Block
           position="absolute"
-          bottom={0}
+          bottom={20}
           left={0}
           right={0}
           flex={0}
